@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: dcgm-exporter
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: dcgm-exporter
+    app.kubernetes.io/version: 3.1.5
+    helm.sh/chart: dcgm-exporter-3.1.5
+  name: release-name-dcgm-exporter
+  namespace: default
+spec:
+  ports:
+  - name: metrics
+    port: 9400
+    protocol: TCP
+    targetPort: 9400
+  selector:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: dcgm-exporter
+  type: ClusterIP

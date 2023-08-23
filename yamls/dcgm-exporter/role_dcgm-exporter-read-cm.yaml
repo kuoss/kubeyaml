@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/component: dcgm-exporter
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: dcgm-exporter
+    app.kubernetes.io/version: 3.1.5
+    helm.sh/chart: dcgm-exporter-3.1.5
+  name: dcgm-exporter-read-cm
+  namespace: default
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - exporter-metrics-config-map
+  resources:
+  - configmaps
+  verbs:
+  - get

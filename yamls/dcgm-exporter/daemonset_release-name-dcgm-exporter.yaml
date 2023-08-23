@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/component: dcgm-exporter
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: dcgm-exporter
+    app.kubernetes.io/version: 3.1.5
+    helm.sh/chart: dcgm-exporter-3.1.5
+  name: release-name-dcgm-exporter
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: dcgm-exporter
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: dcgm-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: dcgm-exporter
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/name: dcgm-exporter
+    spec:
+      containers:
+      - args:
+        - -f
+        - /etc/dcgm-exporter/dcp-metrics-included.csv
+        env:
+        - name: DCGM_EXPORTER_KUBERNETES
+          value: "true"
+        - name: DCGM_EXPORTER_LISTEN
+          value: :9400
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        image: nvcr.io/nvidia/k8s/dcgm-exporter:3.1.8-3.1.5-ubuntu20.04
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9400
+          initialDelaySeconds: 45
+          periodSeconds: 5
+        name: exporter
+        ports:
+        - containerPort: 9400
+          name: metrics
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9400
+          initialDelaySeconds: 45
+        securityContext:
+          capabilities:
+            add:
+            - SYS_ADMIN
+          runAsNonRoot: false
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /var/lib/kubelet/pod-resources
+          name: pod-gpu-resources
+          readOnly: true
+      priorityClassName: system-node-critical
+      serviceAccountName: release-name-dcgm-exporter
+      volumes:
+      - hostPath:
+          path: /var/lib/kubelet/pod-resources
+        name: pod-gpu-resources
+  updateStrategy:
+    type: RollingUpdate

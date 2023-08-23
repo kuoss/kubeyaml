@@ -1,0 +1,41 @@
+apiVersion: v1
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Daemon       Off
+        Flush        1
+        Log_Level    info
+        HTTP_Server  On
+        HTTP_Listen  0.0.0.0
+        HTTP_Port    2020
+        Health_Check On
+    [INPUT]
+        Name         forward
+        Listen       0.0.0.0
+        Port         24224
+    [OUTPUT]
+        Name file
+        Match *
+        Path /data/log
+        Mkdir true
+        Format template
+        Template {row}
+  lethe.yaml: |
+    retention:
+      size: 7g
+      time: 15d
+    storage:
+      driver: filesystem
+      log_data_path: /data/log
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: lethe
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: venti-stack
+    app.kubernetes.io/part-of: venti-stack
+    app.kubernetes.io/version: 0.2.7
+    helm.sh/chart: venti-stack-0.1.17
+  name: release-name-lethe
+  namespace: default

@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: dcgm-exporter
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: dcgm-exporter
+    app.kubernetes.io/version: 3.1.5
+    helm.sh/chart: dcgm-exporter-3.1.5
+  name: release-name-dcgm-exporter
+  namespace: default
+spec:
+  endpoints:
+  - honorLabels: false
+    interval: 15s
+    path: /metrics
+    port: metrics
+    relabelings: []
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: dcgm-exporter
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: dcgm-exporter

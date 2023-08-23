@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: eventrouter
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: venti-stack
+    app.kubernetes.io/part-of: venti-stack
+    app.kubernetes.io/version: 0.2.7
+    helm.sh/chart: venti-stack-0.1.17
+  name: release-name-eventrouter
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: eventrouter
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: venti-stack
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: eventrouter
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: venti-stack
+        app.kubernetes.io/part-of: venti-stack
+        app.kubernetes.io/version: 0.2.7
+        helm.sh/chart: venti-stack-0.1.17
+    spec:
+      containers:
+      - image: ghcr.io/kuoss/eventrouter:v0.3.1
+        name: eventrouter
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /etc/eventrouter
+          name: vol-config
+      serviceAccountName: release-name-eventrouter
+      volumes:
+      - configMap:
+          name: release-name-eventrouter
+        name: vol-config

@@ -1,0 +1,28 @@
+apiVersion: v1
+data:
+  lethe.lua: |
+    function audit(tag, timestamp, r)
+      local u = string.sub(r["stageTimestamp"],1,19).."Z"
+      return 1, timestamp, {tag=string.format("audit/audit/%s_%s.log",string.sub(u,1,10),string.sub(u,12,13)),
+      row=string.format("%s %s",u,r["log"])}
+    end
+    function kube(tag, timestamp, r)
+      local u = os.date("%Y-%m-%dT%H:%M:%SZ")
+      return 1, timestamp, {tag=string.format("pod/%s/%s_%s.log",r["kubernetes"]["namespace_name"],string.sub(u,1,10),string.sub(u,12,13)),
+      row=string.format("%s[%s|%s|%s] %s",u,r["kubernetes"]["namespace_name"],r["kubernetes"]["pod_name"],r["kubernetes"]["container_name"],r["message"])}
+    end
+    function host(tag, timestamp, r)
+      local u = os.date("%Y-%m-%dT%H:%M:%SZ")
+      return 1, timestamp, {tag=string.format("node/%s/%s_%s.log",r["_HOSTNAME"],string.sub(u,1,10),string.sub(u,12,13)),
+      row=string.format("%s[%s|%s] %s",u,r["_HOSTNAME"],r["SYSLOG_IDENTIFIER"],r["MESSAGE"])}
+    end
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 2.1.4
+    helm.sh/chart: fluent-bit-0.30.4
+  name: release-name-fluent-bit-luascripts
+  namespace: default
