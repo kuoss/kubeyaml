@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nvidia-device-plugin
+    app.kubernetes.io/version: 0.14.1
+    helm.sh/chart: nvidia-device-plugin-0.14.1
+  name: release-name-nvidia-device-plugin
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: nvidia-device-plugin
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/name: nvidia-device-plugin
+    spec:
+      containers:
+      - env:
+        - name: NVIDIA_MIG_MONITOR_DEVICES
+          value: all
+        image: nvcr.io/nvidia/k8s-device-plugin:v0.14.1
+        imagePullPolicy: IfNotPresent
+        name: nvidia-device-plugin-ctr
+        securityContext:
+          capabilities:
+            add:
+            - SYS_ADMIN
+        volumeMounts:
+        - mountPath: /var/lib/kubelet/device-plugins
+          name: device-plugin
+      priorityClassName: system-node-critical
+      securityContext: {}
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        operator: Exists
+      volumes:
+      - hostPath:
+          path: /var/lib/kubelet/device-plugins
+        name: device-plugin
+  updateStrategy:
+    type: RollingUpdate

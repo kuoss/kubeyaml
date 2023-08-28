@@ -242,6 +242,10 @@
   repo: https://charts.deliveryhero.io/
 - name: nuclio
   repo: https://nuclio.github.io/nuclio/charts
+- name: nvidia-device-plugin
+  repo: https://nvidia.github.io/k8s-device-plugin
+  valuesInline:
+    allowDefaultNamespace: true
 - name: oauth2-proxy
   repo: https://oauth2-proxy.github.io/manifests
 - name: odoo
