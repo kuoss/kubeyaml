@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/component: coderd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: coder
+    app.kubernetes.io/version: 1.44.0
+    helm.sh/chart: coder-1.44.0
+  name: coderd
+  namespace: default
+spec:
+  ingress:
+  - {}
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: coderd
+      app.kubernetes.io/instance: release-name
+  policyTypes:
+  - Ingress

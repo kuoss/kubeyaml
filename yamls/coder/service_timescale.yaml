@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: timescale
+    app.kubernetes.io/component: timescale
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: coder
+    app.kubernetes.io/version: 1.44.0
+    coder.deployment: timescale
+    helm.sh/chart: coder-1.44.0
+  name: timescale
+  namespace: default
+spec:
+  ports:
+  - name: tcp-timescale
+    port: 5432
+  selector:
+    app: timescale

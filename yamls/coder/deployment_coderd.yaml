@@ -1,0 +1,223 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: coderd
+    app.kubernetes.io/component: coderd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: coder
+    app.kubernetes.io/version: 1.44.0
+    coder.deployment: coderd
+    helm.sh/chart: coder-1.44.0
+  name: coderd
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      coder.deployment: coderd
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        app: coderd
+        app.kubernetes.io/component: coderd
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/name: coder
+        app.kubernetes.io/part-of: coder
+        coder.deployment: coderd
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - coderd
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      containers:
+      - command:
+        - coderd
+        - run
+        env:
+        - name: SKIP_MIGRATIONS
+          value: "true"
+        - name: ASSETS_URL
+        - name: HUMAN_LOG
+          value: /dev/stderr
+        - name: JSON_LOG
+          value: ""
+        - name: STACKDRIVER_LOG
+          value: ""
+        - name: AMPLITUDE_API_KEY
+          value: ""
+        - name: ENVBOX_IMAGE
+          value: docker.io/coderenvs/envbox:1.44.0
+        - name: CLUSTER_ADDRESS
+          value: https://kubernetes.default.svc.cluster.local:443
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: DEVURL_HOST
+          value: ""
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: VERBOSE
+          value: "true"
+        - name: OIDC_REDIRECT_OPTIONS
+          value: '{}'
+        - name: http_proxy
+          value: ""
+        - name: https_proxy
+          value: ""
+        - name: no_proxy
+          value: cluster.local
+        - name: TRUST_PROXY_IP
+          value: "false"
+        - name: PROXY_TRUSTED_ORIGINS
+          value: ""
+        - name: PROXY_TRUSTED_HEADERS
+          value: ""
+        - name: CODER_ALTERNATE_HOSTNAMES
+          value: ""
+        - name: CODER_MIGRATE_BUILT_IN_PROVIDER
+          value: "true"
+        - name: DB_HOST
+          value: timescale.default.svc.cluster.local
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: coder
+        - name: DB_NAME
+          value: coder
+        - name: DB_SSL_MODE
+          value: disable
+        image: docker.io/coderenvs/coder-service:1.44.0
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /cem-healthz
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 3
+        name: coderd
+        ports:
+        - containerPort: 8080
+          name: tcp-coderd
+        - containerPort: 6060
+          name: pprof-coderd
+        - containerPort: 2112
+          name: prom-coderd
+        readinessProbe:
+          failureThreshold: 15
+          httpGet:
+            path: /cem-healthz
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 250m
+            memory: 512Mi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        tty: false
+        volumeMounts:
+        - mountPath: /tmp/pgcerts
+          name: tmp-pgcerts
+      initContainers:
+      - command:
+        - coderd
+        - migrate
+        - up
+        env:
+        - name: HUMAN_LOG
+          value: /dev/stderr
+        - name: JSON_LOG
+          value: ""
+        - name: STACKDRIVER_LOG
+          value: ""
+        - name: SPLUNK_URL
+          value: ""
+        - name: SPLUNK_TOKEN
+          value: ""
+        - name: SPLUNK_CHANNEL
+          value: ""
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: DEVURL_HOST
+          value: ""
+        - name: VERBOSE
+          value: "true"
+        - name: http_proxy
+          value: ""
+        - name: https_proxy
+          value: ""
+        - name: no_proxy
+          value: cluster.local
+        - name: DB_HOST
+          value: timescale.default.svc.cluster.local
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: coder
+        - name: DB_NAME
+          value: coder
+        - name: DB_SSL_MODE
+          value: disable
+        image: docker.io/coderenvs/coder-service:1.44.0
+        imagePullPolicy: Always
+        name: migrations
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /tmp/pgcerts
+          name: tmp-pgcerts
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        kubernetes.io/os: linux
+      restartPolicy: Always
+      securityContext:
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: coder
+      terminationGracePeriodSeconds: 300
+      volumes:
+      - emptyDir: {}
+        name: tmp-pgcerts

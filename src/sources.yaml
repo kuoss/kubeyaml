@@ -37,6 +37,8 @@
 - name: cockroachdb-example
   resources:
   - https://raw.githubusercontent.com/kubernetes/examples/master/staging/cockroachdb/cockroachdb-statefulset.yaml
+- name: coder
+  repo: https://helm.coder.com
 - name: concourse
   repo: https://concourse-charts.storage.googleapis.com/
 - name: confluence

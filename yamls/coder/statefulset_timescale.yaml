@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: timescale
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: coder
+    app.kubernetes.io/version: 1.44.0
+    helm.sh/chart: coder-1.44.0
+  name: timescale
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: timescale
+  serviceName: timescale
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        app: timescale
+        app.kubernetes.io/component: timescale
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: coder
+        app.kubernetes.io/version: 1.44.0
+        coder.deployment: timescale
+        helm.sh/chart: coder-1.44.0
+    spec:
+      containers:
+      - image: docker.io/coderenvs/timescale:1.44.0
+        imagePullPolicy: Always
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - pg_ctl
+              - stop
+              - --mode=fast
+              - --timeout=60
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - coder
+          failureThreshold: 6
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: timescale
+        ports:
+        - containerPort: 5432
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - coder
+          failureThreshold: 6
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 250m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: timescale-data
+          readOnly: false
+        - mountPath: /tmp
+          name: tmp
+          readOnly: false
+        - mountPath: /var/run/postgresql
+          name: run
+          readOnly: false
+      securityContext:
+        fsGroup: 70
+        runAsGroup: 70
+        runAsNonRoot: true
+        runAsUser: 70
+      serviceAccountName: timescale
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - emptyDir: {}
+        name: tmp
+      - emptyDir: {}
+        name: run
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: timescale-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
