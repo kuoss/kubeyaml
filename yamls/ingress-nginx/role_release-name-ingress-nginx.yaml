@@ -3,12 +3,14 @@ kind: Role
 metadata:
   labels:
     app.kubernetes.io/component: controller
-    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.2.0
-  name: ingress-nginx
-  namespace: ingress-nginx
+    app.kubernetes.io/version: 1.8.2
+    helm.sh/chart: ingress-nginx-4.7.2
+  name: release-name-ingress-nginx
+  namespace: default
 rules:
 - apiGroups:
   - ""
@@ -58,18 +60,18 @@ rules:
   - list
   - watch
 - apiGroups:
-  - ""
+  - coordination.k8s.io
   resourceNames:
-  - ingress-controller-leader
+  - release-name-ingress-nginx-leader
   resources:
-  - configmaps
+  - leases
   verbs:
   - get
   - update
 - apiGroups:
-  - ""
+  - coordination.k8s.io
   resources:
-  - configmaps
+  - leases
   verbs:
   - create
 - apiGroups:
@@ -79,3 +81,11 @@ rules:
   verbs:
   - create
   - patch
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - list
+  - watch
+  - get

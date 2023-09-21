@@ -3,13 +3,18 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/component: controller
-    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.2.0
-  name: ingress-nginx-controller
-  namespace: ingress-nginx
+    app.kubernetes.io/version: 1.8.2
+    helm.sh/chart: ingress-nginx-4.7.2
+  name: release-name-ingress-nginx-controller
+  namespace: default
 spec:
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
   ports:
   - appProtocol: http
     name: http
@@ -23,6 +28,6 @@ spec:
     targetPort: https
   selector:
     app.kubernetes.io/component: controller
-    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/instance: release-name
     app.kubernetes.io/name: ingress-nginx
-  type: NodePort
+  type: LoadBalancer

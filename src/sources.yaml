@@ -39,6 +39,8 @@
   - https://raw.githubusercontent.com/kubernetes/examples/master/staging/cockroachdb/cockroachdb-statefulset.yaml
 - name: coder
   repo: https://helm.coder.com
+- name: coder
+  repo: https://helm.coder.com/v2  
 - name: concourse
   repo: https://concourse-charts.storage.googleapis.com/
 - name: confluence
@@ -114,8 +116,10 @@
 - name: influxdb
   repo: https://charts.bitnami.com/bitnami
 - name: ingress-nginx
-  resources:
-  - https://github.com/kubernetes/ingress-nginx.git//deploy/static/provider/baremetal
+  #resources:
+  #- https://github.com/kubernetes/ingress-nginx.git//deploy/static/provider/baremetal
+  chartName: ingress-nginx
+  repo: https://kubernetes.github.io/ingress-nginx
 - name: istio-base
   chartName: base
   repo: https://istio-release.storage.googleapis.com/charts
