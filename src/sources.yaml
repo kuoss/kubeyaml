@@ -276,6 +276,8 @@
   repo: https://prometheus-community.github.io/helm-charts
 - name: prometheus-node-exporter
   repo: https://prometheus-community.github.io/helm-charts
+- name: prometheus-windows-exporter
+  repo: https://prometheus-community.github.io/helm-charts
 - name: promtail
   repo: https://grafana.github.io/helm-charts
 - name: pytorch

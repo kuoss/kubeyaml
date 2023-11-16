@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+  labels:
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: prometheus-windows-exporter
+    app.kubernetes.io/part-of: prometheus-windows-exporter
+    app.kubernetes.io/version: 0.22.0
+    helm.sh/chart: prometheus-windows-exporter-0.1.1
+  name: release-name-prometheus-windows-exporter
+  namespace: default
+spec:
+  ports:
+  - appProtocol: http
+    name: metrics
+    port: 9182
+    protocol: TCP
+    targetPort: metrics
+  selector:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: prometheus-windows-exporter
+  type: ClusterIP

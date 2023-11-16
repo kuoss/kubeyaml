@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: prometheus-windows-exporter
+    app.kubernetes.io/part-of: prometheus-windows-exporter
+    app.kubernetes.io/version: 0.22.0
+    helm.sh/chart: prometheus-windows-exporter-0.1.1
+  name: release-name-prometheus-windows-exporter
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: prometheus-windows-exporter
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app.kubernetes.io/component: metrics
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: prometheus-windows-exporter
+        app.kubernetes.io/part-of: prometheus-windows-exporter
+        app.kubernetes.io/version: 0.22.0
+        helm.sh/chart: prometheus-windows-exporter-0.1.1
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - --config.file=%CONTAINER_SANDBOX_MOUNT_POINT%/config.yml
+        - --collector.textfile.directory=%CONTAINER_SANDBOX_MOUNT_POINT%
+        - --web.listen-address=:9182
+        env: null
+        image: ghcr.io/prometheus-community/windows-exporter:0.22.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            httpHeaders: null
+            path: /
+            port: 9182
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: windows-exporter
+        ports:
+        - containerPort: 9182
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            httpHeaders: null
+            path: /
+            port: 9182
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /config.yml
+          name: config
+          subPath: config.yml
+      hostNetwork: true
+      hostPID: true
+      initContainers:
+      - args:
+        - New-NetFirewallRule
+        - -DisplayName
+        - '''windows-exporter'''
+        - -Direction
+        - inbound
+        - -Profile
+        - Any
+        - -Action
+        - Allow
+        - -LocalPort
+        - "9182"
+        - -Protocol
+        - TCP
+        command:
+        - powershell
+        image: ghcr.io/prometheus-community/windows-exporter:0.22.0
+        name: configure-firewall
+      nodeSelector:
+        kubernetes.io/os: windows
+      securityContext:
+        windowsOptions:
+          hostProcess: true
+          runAsUserName: NT AUTHORITY\system
+      serviceAccountName: release-name-prometheus-windows-exporter
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      volumes:
+      - configMap:
+          name: release-name-prometheus-windows-exporter
+        name: config
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
