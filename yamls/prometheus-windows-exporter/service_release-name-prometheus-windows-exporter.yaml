@@ -9,8 +9,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: prometheus-windows-exporter
     app.kubernetes.io/part-of: prometheus-windows-exporter
-    app.kubernetes.io/version: 0.22.0
-    helm.sh/chart: prometheus-windows-exporter-0.1.1
+    app.kubernetes.io/version: 0.25.1
+    helm.sh/chart: prometheus-windows-exporter-0.3.0
   name: release-name-prometheus-windows-exporter
   namespace: default
 spec:

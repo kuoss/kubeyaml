@@ -7,8 +7,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: prometheus-windows-exporter
     app.kubernetes.io/part-of: prometheus-windows-exporter
-    app.kubernetes.io/version: 0.22.0
-    helm.sh/chart: prometheus-windows-exporter-0.1.1
+    app.kubernetes.io/version: 0.25.1
+    helm.sh/chart: prometheus-windows-exporter-0.3.0
   name: release-name-prometheus-windows-exporter
   namespace: default
 spec:
@@ -26,8 +26,8 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: prometheus-windows-exporter
         app.kubernetes.io/part-of: prometheus-windows-exporter
-        app.kubernetes.io/version: 0.22.0
-        helm.sh/chart: prometheus-windows-exporter-0.1.1
+        app.kubernetes.io/version: 0.25.1
+        helm.sh/chart: prometheus-windows-exporter-0.3.0
     spec:
       automountServiceAccountToken: false
       containers:
@@ -36,7 +36,7 @@ spec:
         - --collector.textfile.directory=%CONTAINER_SANDBOX_MOUNT_POINT%
         - --web.listen-address=:9182
         env: null
-        image: ghcr.io/prometheus-community/windows-exporter:0.22.0
+        image: ghcr.io/prometheus-community/windows-exporter:0.25.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -88,7 +88,7 @@ spec:
         - TCP
         command:
         - powershell
-        image: ghcr.io/prometheus-community/windows-exporter:0.22.0
+        image: ghcr.io/prometheus-community/windows-exporter:0.25.1
         name: configure-firewall
       nodeSelector:
         kubernetes.io/os: windows
