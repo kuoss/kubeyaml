@@ -1,0 +1,167 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: vcluster
+    chart: vcluster-0.19.1
+    heritage: Helm
+    release: release-name
+  name: release-name
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vcluster
+      release: release-name
+  serviceName: release-name-headless
+  template:
+    metadata:
+      labels:
+        app: vcluster
+        release: release-name
+    spec:
+      containers:
+      - args:
+        - --name=release-name
+        - --kube-config=/data/k3s-config/kube-config.yaml
+        - --service-account=vc-workload-release-name
+        - --kube-config-context-name=my-vcluster
+        - --leader-elect=false
+        - --sync=-ingressclasses
+        env:
+        - name: VCLUSTER_DISTRO
+          value: k3s
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: VCLUSTER_COMMAND
+          value: |-
+            command:
+
+            - /binaries/k3s
+            args:
+            - server
+            - --write-kubeconfig=/data/k3s-config/kube-config.yaml
+            - --data-dir=/data
+            - --disable=traefik,servicelb,metrics-server,local-storage,coredns
+            - --disable-network-policy
+            - --disable-agent
+            - --disable-cloud-controller
+            - --egress-selector-mode=disabled
+            - --flannel-backend=none
+            - --kube-apiserver-arg=bind-address=127.0.0.1
+            - --disable-scheduler
+            - --kube-controller-manager-arg=controllers=*,-nodeipam,-nodelifecycle,-persistentvolume-binder,-attachdetach,-persistentvolume-expander,-cloud-node-lifecycle,-ttl
+            - --kube-apiserver-arg=endpoint-reconciler-type=none
+        - name: VCLUSTER_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: CONFIG
+          value: '---'
+        - name: VCLUSTER_TELEMETRY_CONFIG
+          value: '{"disabled":false,"instanceCreator":"helm","machineID":"","platformInstanceID":"","platformUserID":""}'
+        image: ghcr.io/loft-sh/vcluster:0.19.1
+        livenessProbe:
+          failureThreshold: 60
+          httpGet:
+            path: /healthz
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          periodSeconds: 2
+        name: syncer
+        readinessProbe:
+          failureThreshold: 60
+          httpGet:
+            path: /readyz
+            port: 8443
+            scheme: HTTPS
+          periodSeconds: 2
+        resources:
+          limits:
+            ephemeral-storage: 8Gi
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            ephemeral-storage: 200Mi
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsGroup: 0
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /binaries
+          name: binaries
+        - mountPath: /.cache/helm
+          name: helm-cache
+        - mountPath: /etc/rancher
+          name: config
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /manifests/coredns
+          name: coredns
+          readOnly: true
+        - mountPath: /etc/coredns/custom
+          name: custom-config-volume
+          readOnly: true
+        - mountPath: /data
+          name: data
+      initContainers:
+      - args:
+        - -c
+        - cp /bin/k3s /binaries/k3s
+        command:
+        - /bin/sh
+        image: rancher/k3s:v1.29.0-k3s1
+        name: vcluster
+        resources:
+          limits:
+            cpu: 100m
+            memory: 256Mi
+          requests:
+            cpu: 40m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsGroup: 0
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /binaries
+          name: binaries
+      nodeSelector: {}
+      serviceAccountName: vc-release-name
+      terminationGracePeriodSeconds: 10
+      tolerations: []
+      volumes:
+      - emptyDir: {}
+        name: helm-cache
+      - emptyDir: {}
+        name: binaries
+      - emptyDir: {}
+        name: tmp
+      - emptyDir: {}
+        name: config
+      - configMap:
+          name: release-name-coredns
+        name: coredns
+      - configMap:
+          name: coredns-custom
+          optional: true
+        name: custom-config-volume
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: null

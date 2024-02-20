@@ -332,6 +332,12 @@
   repo: https://helm.traefik.io/traefik
 - name: vault
   repo: https://helm.releases.hashicorp.com
+- name: vcluster
+  repo: https://charts.loft.sh
+- name: vcluster-k0s
+  repo: https://charts.loft.sh
+- name: vcluster-k8s
+  repo: https://charts.loft.sh
 - name: velero
   repo: https://vmware-tanzu.github.io/helm-charts/
 - name: venti-stack
