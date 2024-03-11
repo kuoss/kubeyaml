@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: prometheus-windows-exporter
     app.kubernetes.io/part-of: prometheus-windows-exporter
     app.kubernetes.io/version: 0.25.1
-    helm.sh/chart: prometheus-windows-exporter-0.3.0
+    helm.sh/chart: prometheus-windows-exporter-0.3.1
   name: release-name-prometheus-windows-exporter
   namespace: default
 spec:
@@ -27,13 +27,13 @@ spec:
         app.kubernetes.io/name: prometheus-windows-exporter
         app.kubernetes.io/part-of: prometheus-windows-exporter
         app.kubernetes.io/version: 0.25.1
-        helm.sh/chart: prometheus-windows-exporter-0.3.0
+        helm.sh/chart: prometheus-windows-exporter-0.3.1
     spec:
       automountServiceAccountToken: false
       containers:
       - args:
         - --config.file=%CONTAINER_SANDBOX_MOUNT_POINT%/config.yml
-        - --collector.textfile.directory=%CONTAINER_SANDBOX_MOUNT_POINT%
+        - --collector.textfile.directories=%CONTAINER_SANDBOX_MOUNT_POINT%
         - --web.listen-address=:9182
         env: null
         image: ghcr.io/prometheus-community/windows-exporter:0.25.1
