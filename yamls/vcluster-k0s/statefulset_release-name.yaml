@@ -1,0 +1,151 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: vcluster
+    chart: vcluster-k0s-0.19.1
+    heritage: Helm
+    release: release-name
+  name: release-name
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vcluster
+      release: release-name
+  serviceName: release-name-headless
+  template:
+    metadata:
+      labels:
+        app: vcluster
+        release: release-name
+    spec:
+      affinity: {}
+      containers:
+      - args:
+        - --name=release-name
+        - --service-account=vc-workload-release-name
+        - --request-header-ca-cert=/data/k0s/pki/front-proxy-ca.crt
+        - --client-ca-cert=/data/k0s/pki/ca.crt
+        - --server-ca-cert=/data/k0s/pki/ca.crt
+        - --server-ca-key=/data/k0s/pki/ca.key
+        - --kube-config=/data/k0s/pki/admin.conf
+        - --leader-elect=false
+        - --kube-config-context-name=my-vcluster
+        - --sync=-ingressclasses
+        env:
+        - name: VCLUSTER_DISTRO
+          value: k0s
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: VCLUSTER_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: ETCD_UNSUPPORTED_ARCH
+          value: arm64
+        - name: VCLUSTER_COMMAND
+          value: |-
+            command:
+              - "/binaries/k0s"
+            args:
+              - "controller"
+              - "--config=/tmp/k0s-config.yaml"
+              - "--data-dir=/data/k0s"
+              - --status-socket=/run/k0s/status.sock
+              - --disable-components=konnectivity-server,kube-scheduler,csr-approver,kube-proxy,coredns,network-provider,helm,metrics-server,worker-config
+        - name: CONFIG
+          value: '---'
+        - name: VCLUSTER_TELEMETRY_CONFIG
+          value: '{"disabled":false,"instanceCreator":"helm","machineID":"","platformInstanceID":"","platformUserID":""}'
+        image: ghcr.io/loft-sh/vcluster:0.19.1
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /healthz
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          periodSeconds: 2
+        name: syncer
+        readinessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /readyz
+            port: 8443
+            scheme: HTTPS
+          periodSeconds: 2
+        resources:
+          limits:
+            ephemeral-storage: 8Gi
+            memory: 2Gi
+          requests:
+            cpu: 10m
+            ephemeral-storage: 200Mi
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsGroup: 0
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /.cache/helm
+          name: helm-cache
+        - mountPath: /binaries
+          name: binaries
+        - mountPath: /data
+          name: data
+        - mountPath: /run/k0s
+          name: run-k0s
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /manifests/coredns
+          name: coredns
+          readOnly: true
+      initContainers:
+      - args:
+        - -c
+        - cp /usr/local/bin/k0s /binaries/k0s
+        command:
+        - /bin/sh
+        image: k0sproject/k0s:v1.29.1-k0s.0
+        name: vcluster
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsGroup: 0
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /binaries
+          name: binaries
+      nodeSelector: {}
+      serviceAccountName: vc-release-name
+      terminationGracePeriodSeconds: 10
+      tolerations: []
+      volumes:
+      - emptyDir: {}
+        name: helm-cache
+      - emptyDir: {}
+        name: tmp
+      - emptyDir: {}
+        name: run-k0s
+      - emptyDir: {}
+        name: binaries
+      - configMap:
+          name: release-name-coredns
+        name: coredns
+      - configMap:
+          name: coredns-custom
+          optional: true
+        name: custom-config-volume
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: null

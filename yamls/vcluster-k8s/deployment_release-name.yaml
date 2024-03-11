@@ -1,0 +1,197 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: vcluster
+    chart: vcluster-k8s-0.19.1
+    heritage: Helm
+    release: release-name
+  name: release-name
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vcluster
+      release: release-name
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: vcluster
+        release: release-name
+    spec:
+      containers:
+      - args:
+        - --name=release-name
+        - --request-header-ca-cert=/pki/front-proxy-ca.crt
+        - --client-ca-cert=/pki/ca.crt
+        - --server-ca-cert=/pki/ca.crt
+        - --server-ca-key=/pki/ca.key
+        - --kube-config=/pki/admin.conf
+        - --service-account=vc-workload-release-name
+        - --kube-config-context-name=my-vcluster
+        - --leader-elect=false
+        - --sync=-ingressclasses
+        env:
+        - name: VCLUSTER_DISTRO
+          value: k8s
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: VCLUSTER_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: CONFIG
+          value: '---'
+        - name: VCLUSTER_TELEMETRY_CONFIG
+          value: '{"disabled":false,"instanceCreator":"helm","machineID":"","platformInstanceID":"","platformUserID":""}'
+        - name: APISERVER_COMMAND
+          value: |-
+            command:
+              - /binaries/kube-apiserver
+              - '--advertise-address=127.0.0.1'
+              - '--bind-address=127.0.0.1'
+              - '--allow-privileged=true'
+              - '--authorization-mode=RBAC'
+              - '--client-ca-file=/pki/ca.crt'
+              - '--enable-bootstrap-token-auth=true'
+              - '--etcd-cafile=/pki/etcd/ca.crt'
+              - '--etcd-certfile=/pki/apiserver-etcd-client.crt'
+              - '--etcd-keyfile=/pki/apiserver-etcd-client.key'
+              - '--etcd-servers=https://release-name-etcd:2379'
+              - '--proxy-client-cert-file=/pki/front-proxy-client.crt'
+              - '--proxy-client-key-file=/pki/front-proxy-client.key'
+              - '--requestheader-allowed-names=front-proxy-client'
+              - '--requestheader-client-ca-file=/pki/front-proxy-ca.crt'
+              - '--requestheader-extra-headers-prefix=X-Remote-Extra-'
+              - '--requestheader-group-headers=X-Remote-Group'
+              - '--requestheader-username-headers=X-Remote-User'
+              - '--secure-port=6443'
+              - '--service-account-issuer=https://kubernetes.default.svc.cluster.local'
+              - '--service-account-key-file=/pki/sa.pub'
+              - '--service-account-signing-key-file=/pki/sa.key'
+              - '--tls-cert-file=/pki/apiserver.crt'
+              - '--tls-private-key-file=/pki/apiserver.key'
+              - '--watch-cache=false'
+              - '--endpoint-reconciler-type=none'
+        - name: CONTROLLER_COMMAND
+          value: |-
+            command:
+              - /binaries/kube-controller-manager
+              - '--authentication-kubeconfig=/pki/controller-manager.conf'
+              - '--authorization-kubeconfig=/pki/controller-manager.conf'
+              - '--bind-address=127.0.0.1'
+              - '--client-ca-file=/pki/ca.crt'
+              - '--cluster-name=kubernetes'
+              - '--cluster-signing-cert-file=/pki/ca.crt'
+              - '--cluster-signing-key-file=/pki/ca.key'
+              - '--controllers=*,-nodeipam,-nodelifecycle,-persistentvolume-binder,-attachdetach,-persistentvolume-expander,-cloud-node-lifecycle,-ttl'
+              - '--horizontal-pod-autoscaler-sync-period=60s'
+              - '--kubeconfig=/pki/controller-manager.conf'
+              - '--leader-elect=false'
+              - '--node-monitor-grace-period=180s'
+              - '--node-monitor-period=30s'
+              - '--pvclaimbinder-sync-period=60s'
+              - '--requestheader-client-ca-file=/pki/front-proxy-ca.crt'
+              - '--root-ca-file=/pki/ca.crt'
+              - '--service-account-private-key-file=/pki/sa.key'
+              - '--use-service-account-credentials=true'
+        image: ghcr.io/loft-sh/vcluster:0.19.1
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /healthz
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          periodSeconds: 2
+        name: syncer
+        readinessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /readyz
+            port: 8443
+            scheme: HTTPS
+          periodSeconds: 2
+        resources:
+          limits:
+            cpu: 1000m
+            ephemeral-storage: 8Gi
+            memory: 2Gi
+          requests:
+            cpu: 20m
+            ephemeral-storage: 200Mi
+            memory: 256Mi
+        securityContext: {}
+        volumeMounts:
+        - mountPath: /.cache/helm
+          name: helm-cache
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /pki
+          name: certs
+        - mountPath: /binaries
+          name: binaries
+        - mountPath: /manifests/coredns
+          name: coredns
+          readOnly: true
+      initContainers:
+      - args:
+        - -c
+        - cp /vcluster /binaries/vcluster
+        command:
+        - /bin/sh
+        image: ghcr.io/loft-sh/vcluster:0.19.1
+        name: vcluster-copy
+        volumeMounts:
+        - mountPath: /binaries
+          name: binaries
+      - args:
+        - cp
+        - /usr/local/bin/kube-controller-manager
+        - /binaries/kube-controller-manager
+        command:
+        - /binaries/vcluster
+        image: registry.k8s.io/kube-controller-manager:v1.29.0
+        name: kube-controller-manager
+        volumeMounts:
+        - mountPath: /binaries
+          name: binaries
+      - args:
+        - cp
+        - /usr/local/bin/kube-apiserver
+        - /binaries/kube-apiserver
+        command:
+        - /binaries/vcluster
+        image: registry.k8s.io/kube-apiserver:v1.29.0
+        name: kube-apiserver
+        volumeMounts:
+        - mountPath: /binaries
+          name: binaries
+      nodeSelector: {}
+      serviceAccountName: vc-release-name
+      terminationGracePeriodSeconds: 10
+      tolerations: []
+      volumes:
+      - emptyDir: {}
+        name: helm-cache
+      - emptyDir: {}
+        name: tmp
+      - emptyDir: {}
+        name: certs
+      - emptyDir: {}
+        name: binaries
+      - configMap:
+          name: release-name-coredns
+        name: coredns
+      - configMap:
+          name: coredns-custom
+          optional: true
+        name: custom-config-volume
