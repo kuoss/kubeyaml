@@ -2,32 +2,33 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: prometheus
-    chart: prometheus-15.8.5
-    component: pushgateway
-    heritage: Helm
-    release: RELEASE-NAME
-  name: RELEASE-NAME-prometheus-pushgateway
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: prometheus-pushgateway
+    app.kubernetes.io/version: v1.9.0
+    helm.sh/chart: prometheus-pushgateway-2.14.0
+  name: release-name-prometheus-pushgateway
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: prometheus
-      component: pushgateway
-      release: RELEASE-NAME
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: prometheus-pushgateway
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        app: prometheus
-        chart: prometheus-15.8.5
-        component: pushgateway
-        heritage: Helm
-        release: RELEASE-NAME
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: prometheus-pushgateway
+        app.kubernetes.io/version: v1.9.0
+        helm.sh/chart: prometheus-pushgateway-2.14.0
     spec:
+      automountServiceAccountToken: true
       containers:
-      - args: null
-        image: prom/pushgateway:v1.4.2
+      - image: quay.io/prometheus/pushgateway:v1.9.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -35,17 +36,26 @@ spec:
             port: 9091
           initialDelaySeconds: 10
           timeoutSeconds: 10
-        name: prometheus-pushgateway
+        name: pushgateway
         ports:
         - containerPort: 9091
+          name: metrics
+          protocol: TCP
         readinessProbe:
           httpGet:
             path: /-/ready
             port: 9091
           initialDelaySeconds: 10
           timeoutSeconds: 10
-        resources: {}
+        volumeMounts:
+        - mountPath: /data
+          name: storage-volume
+          subPath: ""
       securityContext:
+        fsGroup: 65534
         runAsNonRoot: true
         runAsUser: 65534
-      serviceAccountName: RELEASE-NAME-prometheus-pushgateway
+      serviceAccountName: release-name-prometheus-pushgateway
+      volumes:
+      - emptyDir: {}
+        name: storage-volume

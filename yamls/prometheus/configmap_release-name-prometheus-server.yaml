@@ -4,6 +4,7 @@ data:
     {}
   alerts: |
     {}
+  allow-snippet-annotations: "false"
   prometheus.yml: |
     global:
       evaluation_interval: 1m
@@ -94,7 +95,7 @@ data:
         - __meta_kubernetes_service_annotation_prometheus_io_path
         target_label: __metrics_path__
       - action: replace
-        regex: ([^:]+)(?::\d+)?;(\d+)
+        regex: (.+?)(?::\d+)?;(\d+)
         replacement: $1:$2
         source_labels:
         - __address__
@@ -137,7 +138,7 @@ data:
         - __meta_kubernetes_service_annotation_prometheus_io_path
         target_label: __metrics_path__
       - action: replace
-        regex: ([^:]+)(?::\d+)?;(\d+)
+        regex: (.+?)(?::\d+)?;(\d+)
         replacement: $1:$2
         source_labels:
         - __address__
@@ -224,11 +225,18 @@ data:
         - __meta_kubernetes_pod_annotation_prometheus_io_path
         target_label: __metrics_path__
       - action: replace
-        regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: $1:$2
+        regex: (\d+);(([A-Fa-f0-9]{1,4}::?){1,7}[A-Fa-f0-9]{1,4})
+        replacement: '[$2]:$1'
         source_labels:
-        - __address__
         - __meta_kubernetes_pod_annotation_prometheus_io_port
+        - __meta_kubernetes_pod_ip
+        target_label: __address__
+      - action: replace
+        regex: (\d+);((([0-9]+?)(\.|$)){4})
+        replacement: $2:$1
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_port
+        - __meta_kubernetes_pod_ip
         target_label: __address__
       - action: labelmap
         regex: __meta_kubernetes_pod_annotation_prometheus_io_param_(.+)
@@ -247,6 +255,10 @@ data:
         regex: Pending|Succeeded|Failed|Completed
         source_labels:
         - __meta_kubernetes_pod_phase
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_pod_node_name
+        target_label: node
     - honor_labels: true
       job_name: kubernetes-pods-slow
       kubernetes_sd_configs:
@@ -267,11 +279,18 @@ data:
         - __meta_kubernetes_pod_annotation_prometheus_io_path
         target_label: __metrics_path__
       - action: replace
-        regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: $1:$2
+        regex: (\d+);(([A-Fa-f0-9]{1,4}::?){1,7}[A-Fa-f0-9]{1,4})
+        replacement: '[$2]:$1'
         source_labels:
-        - __address__
         - __meta_kubernetes_pod_annotation_prometheus_io_port
+        - __meta_kubernetes_pod_ip
+        target_label: __address__
+      - action: replace
+        regex: (\d+);((([0-9]+?)(\.|$)){4})
+        replacement: $2:$1
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_port
+        - __meta_kubernetes_pod_ip
         target_label: __address__
       - action: labelmap
         regex: __meta_kubernetes_pod_annotation_prometheus_io_param_(.+)
@@ -290,6 +309,10 @@ data:
         regex: Pending|Succeeded|Failed|Completed
         source_labels:
         - __meta_kubernetes_pod_phase
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_pod_node_name
+        target_label: node
       scrape_interval: 5m
       scrape_timeout: 30s
     alerting:
@@ -303,14 +326,11 @@ data:
         - source_labels: [__meta_kubernetes_namespace]
           regex: default
           action: keep
-        - source_labels: [__meta_kubernetes_pod_label_app]
-          regex: prometheus
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+          regex: release-name
           action: keep
-        - source_labels: [__meta_kubernetes_pod_label_component]
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
           regex: alertmanager
-          action: keep
-        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_probe]
-          regex: .*
           action: keep
         - source_labels: [__meta_kubernetes_pod_container_port_number]
           regex: "9093"
@@ -322,10 +342,12 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    app: prometheus
-    chart: prometheus-15.8.5
-    component: server
-    heritage: Helm
-    release: RELEASE-NAME
-  name: RELEASE-NAME-prometheus-server
+    app.kubernetes.io/component: server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/part-of: prometheus
+    app.kubernetes.io/version: v2.54.0
+    helm.sh/chart: prometheus-25.26.0
+  name: release-name-prometheus-server
   namespace: default

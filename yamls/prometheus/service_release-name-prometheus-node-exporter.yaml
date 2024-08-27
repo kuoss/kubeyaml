@@ -4,22 +4,22 @@ metadata:
   annotations:
     prometheus.io/scrape: "true"
   labels:
-    app: prometheus
-    chart: prometheus-15.8.5
-    component: node-exporter
-    heritage: Helm
-    release: RELEASE-NAME
-  name: RELEASE-NAME-prometheus-node-exporter
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: prometheus-node-exporter
+    app.kubernetes.io/part-of: prometheus-node-exporter
+    app.kubernetes.io/version: 1.8.2
+    helm.sh/chart: prometheus-node-exporter-4.37.1
+  name: release-name-prometheus-node-exporter
   namespace: default
 spec:
-  clusterIP: None
   ports:
   - name: metrics
     port: 9100
     protocol: TCP
     targetPort: 9100
   selector:
-    app: prometheus
-    component: node-exporter
-    release: RELEASE-NAME
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: prometheus-node-exporter
   type: ClusterIP

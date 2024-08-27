@@ -2,37 +2,61 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: prometheus
-    chart: prometheus-15.8.5
-    component: server
-    heritage: Helm
-    release: RELEASE-NAME
-  name: RELEASE-NAME-prometheus-server
+    app.kubernetes.io/component: server
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/part-of: prometheus
+    app.kubernetes.io/version: v2.54.0
+    helm.sh/chart: prometheus-25.26.0
+  name: release-name-prometheus-server
   namespace: default
 spec:
   replicas: 1
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: prometheus
-      component: server
-      release: RELEASE-NAME
+      app.kubernetes.io/component: server
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: prometheus
+  strategy:
+    rollingUpdate: null
+    type: Recreate
   template:
     metadata:
       labels:
-        app: prometheus
-        chart: prometheus-15.8.5
-        component: server
-        heritage: Helm
-        release: RELEASE-NAME
+        app.kubernetes.io/component: server
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: prometheus
+        app.kubernetes.io/part-of: prometheus
+        app.kubernetes.io/version: v2.54.0
+        helm.sh/chart: prometheus-25.26.0
     spec:
       containers:
       - args:
-        - --volume-dir=/etc/config
-        - --webhook-url=http://127.0.0.1:9090/-/reload
-        image: jimmidyson/configmap-reload:v0.5.0
+        - --watched-dir=/etc/config
+        - --listen-address=0.0.0.0:8080
+        - --reload-url=http://127.0.0.1:9090/-/reload
+        image: quay.io/prometheus-operator/prometheus-config-reloader:v0.75.2
         imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: metrics
+            scheme: HTTP
+          initialDelaySeconds: 2
+          periodSeconds: 10
         name: prometheus-server-configmap-reload
-        resources: {}
+        ports:
+        - containerPort: 8080
+          name: metrics
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: metrics
+            scheme: HTTP
+          periodSeconds: 10
         volumeMounts:
         - mountPath: /etc/config
           name: config-volume
@@ -44,7 +68,7 @@ spec:
         - --web.console.libraries=/etc/prometheus/console_libraries
         - --web.console.templates=/etc/prometheus/consoles
         - --web.enable-lifecycle
-        image: quay.io/prometheus/prometheus:v2.34.0
+        image: quay.io/prometheus/prometheus:v2.54.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -69,7 +93,6 @@ spec:
           periodSeconds: 5
           successThreshold: 1
           timeoutSeconds: 4
-        resources: {}
         volumeMounts:
         - mountPath: /etc/config
           name: config-volume
@@ -78,18 +101,17 @@ spec:
           subPath: ""
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
-      hostNetwork: false
       securityContext:
         fsGroup: 65534
         runAsGroup: 65534
         runAsNonRoot: true
         runAsUser: 65534
-      serviceAccountName: RELEASE-NAME-prometheus-server
+      serviceAccountName: release-name-prometheus-server
       terminationGracePeriodSeconds: 300
       volumes:
       - configMap:
-          name: RELEASE-NAME-prometheus-server
+          name: release-name-prometheus-server
         name: config-volume
       - name: storage-volume
         persistentVolumeClaim:
-          claimName: RELEASE-NAME-prometheus-server
+          claimName: release-name-prometheus-server

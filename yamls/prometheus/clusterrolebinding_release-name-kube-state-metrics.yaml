@@ -3,18 +3,18 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/component: metrics
-    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: kube-state-metrics
     app.kubernetes.io/part-of: kube-state-metrics
-    app.kubernetes.io/version: 2.4.1
-    helm.sh/chart: kube-state-metrics-4.7.0
-  name: RELEASE-NAME-kube-state-metrics
+    app.kubernetes.io/version: 2.13.0
+    helm.sh/chart: kube-state-metrics-5.25.1
+  name: release-name-kube-state-metrics
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: RELEASE-NAME-kube-state-metrics
+  name: release-name-kube-state-metrics
 subjects:
 - kind: ServiceAccount
-  name: RELEASE-NAME-kube-state-metrics
+  name: release-name-kube-state-metrics
   namespace: default
