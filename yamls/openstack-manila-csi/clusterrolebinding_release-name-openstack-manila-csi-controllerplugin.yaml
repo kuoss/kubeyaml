@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: openstack-manila-csi
+    chart: openstack-manila-csi-2.30.0
+    component: controllerplugin
+    heritage: Helm
+    release: release-name
+  name: release-name-openstack-manila-csi-controllerplugin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-openstack-manila-csi-controllerplugin
+subjects:
+- kind: ServiceAccount
+  name: release-name-openstack-manila-csi-controllerplugin
+  namespace: default

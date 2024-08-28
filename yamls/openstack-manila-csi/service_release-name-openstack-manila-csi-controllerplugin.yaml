@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: openstack-manila-csi
+    chart: openstack-manila-csi-2.30.0
+    component: controllerplugin
+    heritage: Helm
+    release: release-name
+  name: release-name-openstack-manila-csi-controllerplugin
+spec:
+  ports:
+  - name: dummy
+    port: 12345
+  selector:
+    app: openstack-manila-csi
+    component: controllerplugin
+    release: release-name

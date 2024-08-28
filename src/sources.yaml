@@ -282,6 +282,8 @@
   repo: https://grafana.github.io/helm-charts
 - name: pytorch
   repo: https://charts.bitnami.com/bitnami
+- name: openstack-manila-csi
+  repo: https://kubernetes.github.io/cloud-provider-openstack
 - name: rabbitmq
   repo: https://charts.bitnami.com/bitnami
 - name: redis

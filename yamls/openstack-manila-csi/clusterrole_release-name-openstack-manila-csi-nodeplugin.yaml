@@ -1,0 +1,15 @@
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.manila.csi.openstack.org/aggregate-to-nodeplugin-openstack-manila-csi: "true"
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: openstack-manila-csi
+    chart: openstack-manila-csi-2.30.0
+    component: nodeplugin
+    heritage: Helm
+    release: release-name
+  name: release-name-openstack-manila-csi-nodeplugin
+rules: []
