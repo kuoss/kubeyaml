@@ -55,6 +55,8 @@
   repo: https://charts.crossplane.io/stable
 - name: crowd
   repo: https://atlassian.github.io/data-center-helm-charts
+- name: csi-driver-nfs
+  repo: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
 - name: dask
   repo: https://helm.dask.org/
 - name: datadog
