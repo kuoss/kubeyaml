@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: service-query
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/version: 1.53.0
+    helm.sh/chart: jaeger-3.1.2
+  name: release-name-jaeger-query
+spec:
+  clusterIP: None
+  ports:
+  - name: http-query
+    port: 16686
+    targetPort: 16686
+  - name: grpc-query
+    port: 16685
+    targetPort: 16685
+  selector:
+    app.kubernetes.io/component: all-in-one
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: jaeger

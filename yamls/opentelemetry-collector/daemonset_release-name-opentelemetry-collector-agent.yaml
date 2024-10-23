@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/version: 0.111.0
+    helm.sh/chart: opentelemetry-collector-0.108.0
+  name: release-name-opentelemetry-collector-agent
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: opentelemetry-collector
+      component: agent-collector
+  template:
+    metadata:
+      annotations:
+        checksum/config: f31652e990bf5f37615d618cb4002ecc4bb656555ed8289799c6760c858100e1
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/name: opentelemetry-collector
+        component: agent-collector
+    spec:
+      containers:
+      - args:
+        - --config=/conf/relay.yaml
+        command:
+        - /otelcol-k8s
+        env:
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        image: otel/opentelemetry-collector-k8s:0.111.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 13133
+        name: opentelemetry-collector
+        ports:
+        - containerPort: 6831
+          hostPort: 6831
+          name: jaeger-compact
+          protocol: UDP
+        - containerPort: 14250
+          hostPort: 14250
+          name: jaeger-grpc
+          protocol: TCP
+        - containerPort: 14268
+          hostPort: 14268
+          name: jaeger-thrift
+          protocol: TCP
+        - containerPort: 4317
+          hostPort: 4317
+          name: otlp
+          protocol: TCP
+        - containerPort: 4318
+          hostPort: 4318
+          name: otlp-http
+          protocol: TCP
+        - containerPort: 9411
+          hostPort: 9411
+          name: zipkin
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 13133
+        securityContext: {}
+        volumeMounts:
+        - mountPath: /conf
+          name: opentelemetry-collector-configmap
+      hostNetwork: false
+      securityContext: {}
+      serviceAccountName: release-name-opentelemetry-collector
+      volumes:
+      - configMap:
+          items:
+          - key: relay
+            path: relay.yaml
+          name: release-name-opentelemetry-collector-agent
+        name: opentelemetry-collector-configmap
+  updateStrategy:
+    type: RollingUpdate

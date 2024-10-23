@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    helm.sh/hook: test
+  labels:
+    app.kubernetes.io/component: controller-manager
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: opentelemetry-operator
+    app.kubernetes.io/version: 0.110.0
+    helm.sh/chart: opentelemetry-operator-0.71.1
+  name: release-name-opentelemetry-operator-metrics
+  namespace: default
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - |
+      wget_output=$(wget -q "$MANAGER_METRICS_SERVICE_CLUSTERIP:$MANAGER_METRICS_SERVICE_PORT")
+      if wget_output=="wget: server returned error: HTTP/1.0 400 Bad Request"
+      then exit 0
+      else exit 1
+      fi
+    env:
+    - name: MANAGER_METRICS_SERVICE_CLUSTERIP
+      value: release-name-opentelemetry-operator
+    - name: MANAGER_METRICS_SERVICE_PORT
+      value: "8443"
+    image: busybox:latest
+    name: wget
+  restartPolicy: Never

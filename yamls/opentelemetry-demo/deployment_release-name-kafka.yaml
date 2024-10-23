@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: kafka
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: release-name-kafka
+    app.kubernetes.io/part-of: opentelemetry-demo
+    app.kubernetes.io/version: 1.11.1
+    helm.sh/chart: opentelemetry-demo-0.32.8
+    opentelemetry.io/name: release-name-kafka
+  name: release-name-kafka
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      opentelemetry.io/name: release-name-kafka
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: kafka
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/name: release-name-kafka
+        opentelemetry.io/name: release-name-kafka
+    spec:
+      containers:
+      - env:
+        - name: OTEL_SERVICE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels['app.kubernetes.io/component']
+        - name: OTEL_COLLECTOR_NAME
+          value: release-name-otelcol
+        - name: OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+          value: cumulative
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: PLAINTEXT://release-name-kafka:9092
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: http://$(OTEL_COLLECTOR_NAME):4318
+        - name: KAFKA_HEAP_OPTS
+          value: -Xmx400M -Xms400M
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: service.name=$(OTEL_SERVICE_NAME),service.namespace=opentelemetry-demo,service.version=1.11.1
+        image: ghcr.io/open-telemetry/demo:1.11.1-kafka
+        imagePullPolicy: IfNotPresent
+        name: kafka
+        ports:
+        - containerPort: 9092
+          name: plaintext
+        - containerPort: 9093
+          name: controller
+        resources:
+          limits:
+            memory: 600Mi
+        securityContext:
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts: null
+      serviceAccountName: release-name
+      volumes: null

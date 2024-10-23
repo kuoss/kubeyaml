@@ -264,6 +264,28 @@
   repo: https://opensearch-project.github.io/helm-charts/
 - name: opensearch-dashboards
   repo: https://opensearch-project.github.io/helm-charts/
+- name: openstack-manila-csi
+  repo: https://kubernetes.github.io/cloud-provider-openstack
+- name: opentelemetry-collector
+  repo: https://open-telemetry.github.io/opentelemetry-helm-charts
+  valuesInline:
+    mode: daemonset
+    image:
+      repository: otel/opentelemetry-collector-k8s
+    command:
+      name: otelcol-k8s
+- name: opentelemetry-demo
+  repo: https://open-telemetry.github.io/opentelemetry-helm-charts
+- name: opentelemetry-ebpf
+  repo: https://open-telemetry.github.io/opentelemetry-helm-charts
+- name: opentelemetry-kube-stack
+  repo: https://open-telemetry.github.io/opentelemetry-helm-charts
+- name: opentelemetry-operator
+  repo: https://open-telemetry.github.io/opentelemetry-helm-charts
+  valuesInline:
+    manager:
+      collectorImage:
+        repository: otel/opentelemetry-collector-k8s
 - name: parsoid
   repo: https://helm-charts.wikimedia.org/stable/
 - name: phpbb
@@ -284,8 +306,6 @@
   repo: https://grafana.github.io/helm-charts
 - name: pytorch
   repo: https://charts.bitnami.com/bitnami
-- name: openstack-manila-csi
-  repo: https://kubernetes.github.io/cloud-provider-openstack
 - name: rabbitmq
   repo: https://charts.bitnami.com/bitnami
 - name: redis

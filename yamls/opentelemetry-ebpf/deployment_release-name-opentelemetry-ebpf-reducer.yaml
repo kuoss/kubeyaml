@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: opentelemetry-ebpf
+    app.kubernetes.io/version: v0.10.2
+    helm.sh/chart: opentelemetry-ebpf-0.1.4
+  name: release-name-opentelemetry-ebpf-reducer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: release-name-opentelemetry-ebpf-reducer
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/name: release-name-opentelemetry-ebpf-reducer
+    spec:
+      containers:
+      - args:
+        - --port=7000
+        - --log-console
+        - --no-log-file
+        - --warning
+        - --enable-aws-enrichment
+        - --disable-prometheus-metrics
+        - --enable-otlp-grpc-metrics
+        - --otlp-grpc-metrics-host=
+        - --otlp-grpc-metrics-port=4317
+        - --num-ingest-shards=1
+        - --num-matching-shards=1
+        - --num-aggregation-shards=1
+        image: otel/opentelemetry-ebpf-reducer:v0.10.2
+        imagePullPolicy: IfNotPresent
+        name: reducer
+        ports:
+        - containerPort: 7000
+          name: telemetry
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /srv/health_check.sh
+            - readiness_probe
+            - localhost
+            - "7000"
+          initialDelaySeconds: 5
+          periodSeconds: 20
+          timeoutSeconds: 5

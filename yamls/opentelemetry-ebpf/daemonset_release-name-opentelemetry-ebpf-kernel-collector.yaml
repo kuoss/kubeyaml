@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: opentelemetry-ebpf
+    app.kubernetes.io/version: v0.10.2
+    helm.sh/chart: opentelemetry-ebpf-0.1.4
+  name: release-name-opentelemetry-ebpf-kernel-collector
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: release-name-opentelemetry-ebpf-kernel-collector
+  template:
+    metadata:
+      annotations:
+        charts.flowmill.com/version: 0.1.4
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/name: release-name-opentelemetry-ebpf-kernel-collector
+    spec:
+      containers:
+      - args:
+        - --config-file=/etc/network-explorer/config.yaml
+        - --disable-nomad-metadata
+        - --warning
+        env:
+        - name: EBPF_NET_CLUSTER_NAME
+          value: ""
+        - name: EBPF_NET_DISABLE_HTTP_METRICS
+          value: "false"
+        - name: EBPF_NET_KERNEL_HEADERS_AUTO_FETCH
+          value: "true"
+        - name: EBPF_NET_INTAKE_HOST
+          value: release-name-opentelemetry-ebpf-reducer
+        - name: EBPF_NET_INTAKE_PORT
+          value: "7000"
+        - name: EBPF_NET_HOST_DIR
+          value: /hostfs
+        image: otel/opentelemetry-ebpf-kernel-collector:v0.10.2
+        imagePullPolicy: IfNotPresent
+        name: kernel-collector
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /hostfs/
+          name: host-root
+          readOnly: true
+        - mountPath: /hostfs/var/cache
+          name: host-var-cache
+          readOnly: false
+        - mountPath: /etc/network-explorer
+          name: release-name-opentelemetry-ebpf-config
+          readOnly: true
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      hostPID: true
+      serviceAccountName: release-name-opentelemetry-ebpf-kernel-collector
+      tolerations:
+      - effect: NoExecute
+        operator: Exists
+      - effect: NoSchedule
+        operator: Exists
+      volumes:
+      - name: release-name-opentelemetry-ebpf-config
+        projected:
+          sources:
+          - configMap:
+              items:
+              - key: config.yaml
+                path: config.yaml
+              name: release-name-opentelemetry-ebpf-config
+      - hostPath:
+          path: /
+          type: Directory
+        name: host-root
+      - hostPath:
+          path: /var/cache
+          type: DirectoryOrCreate
+        name: host-var-cache

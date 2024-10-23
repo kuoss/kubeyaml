@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: opentelemetry-ebpf
+    app.kubernetes.io/version: v0.10.2
+    helm.sh/chart: opentelemetry-ebpf-0.1.4
+  name: release-name-opentelemetry-ebpf-k8s-collector
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: release-name-opentelemetry-ebpf-k8s-collector
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        charts.flowmill.com/version: 0.1.4
+        rollingUpdateVersion: "1"
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/name: release-name-opentelemetry-ebpf-k8s-collector
+    spec:
+      containers:
+      - args:
+        - --log-console
+        - --log-level=warning
+        image: otel/opentelemetry-ebpf-k8s-watcher:v0.10.2
+        imagePullPolicy: IfNotPresent
+        name: k8s-watcher
+      - args:
+        - --config-file=/etc/network-explorer/config.yaml
+        - --warning
+        env:
+        - name: EBPF_NET_CLUSTER_NAME
+          value: ""
+        - name: EBPF_NET_INTAKE_HOST
+          value: release-name-opentelemetry-ebpf-reducer
+        - name: EBPF_NET_INTAKE_PORT
+          value: "7000"
+        image: otel/opentelemetry-ebpf-k8s-relay:v0.10.2
+        imagePullPolicy: IfNotPresent
+        name: k8s-relay
+        volumeMounts:
+        - mountPath: /etc/network-explorer
+          name: k8s-relay-config
+      securityContext: {}
+      serviceAccountName: release-name-opentelemetry-ebpf-k8s-collector
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: k8s-relay-config
+        projected:
+          sources:
+          - configMap:
+              items:
+              - key: config.yaml
+                path: config.yaml
+              name: release-name-opentelemetry-ebpf-config
