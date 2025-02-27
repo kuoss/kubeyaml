@@ -3189,11 +3189,11 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: fluentd
-    app.kubernetes.io/version: v1.12.4
+    app.kubernetes.io/version: v1.16.2
     grafana_dashboard: "1"
-    helm.sh/chart: fluentd-0.3.5
-  name: dashboard-fluentd
+    helm.sh/chart: fluentd-0.5.2
+  name: dashboard-fluentd-release-name
   namespace: default

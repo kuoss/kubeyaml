@@ -4,18 +4,22 @@ metadata:
   annotations:
     helm.sh/hook: test-success
   labels:
-    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: fluentd
-    app.kubernetes.io/version: v1.12.4
-    helm.sh/chart: fluentd-0.3.5
-  name: RELEASE-NAME-fluentd-test-connection
+    app.kubernetes.io/version: v1.16.2
+    helm.sh/chart: fluentd-0.5.2
+  name: release-name-fluentd-test-connection
 spec:
   containers:
-  - args:
-    - 'RELEASE-NAME-fluentd:'
-    command:
-    - wget
+  - command:
+    - sh
+    - -c
+    - |
+      set -e
+      # Give fluentd some time to start up
+      while :; do nc -vz release-name-fluentd:24231 && break; sleep 1; done
+      wget 'release-name-fluentd:24231/metrics'
     image: busybox
     name: wget
   restartPolicy: Never

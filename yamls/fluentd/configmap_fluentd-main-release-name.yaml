@@ -10,13 +10,12 @@ data:
     </label>
 
     @include config.d/*.conf
-    @include fluentd-prometheus-conf.d/*
 kind: ConfigMap
 metadata:
   labels:
-    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: fluentd
-    app.kubernetes.io/version: v1.12.4
-    helm.sh/chart: fluentd-0.3.5
-  name: fluentd-main
+    app.kubernetes.io/version: v1.16.2
+    helm.sh/chart: fluentd-0.5.2
+  name: fluentd-main-release-name

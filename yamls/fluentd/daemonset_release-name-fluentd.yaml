@@ -2,30 +2,30 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
-    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: fluentd
-    app.kubernetes.io/version: v1.12.4
-    helm.sh/chart: fluentd-0.3.5
-  name: RELEASE-NAME-fluentd
+    app.kubernetes.io/version: v1.16.2
+    helm.sh/chart: fluentd-0.5.2
+  name: release-name-fluentd
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/instance: RELEASE-NAME
+      app.kubernetes.io/instance: release-name
       app.kubernetes.io/name: fluentd
   template:
     metadata:
       annotations:
-        checksum/config: 864028a528701a1924b7601e93ae75bf830f820b7b81672f9dacd926603eae7c
+        checksum/config: 4e88d3b89490fb381d532d5edf98e62b05330e09f36d95d208e78261379c5bae
       labels:
-        app.kubernetes.io/instance: RELEASE-NAME
+        app.kubernetes.io/instance: release-name
         app.kubernetes.io/name: fluentd
     spec:
       containers:
       - env:
         - name: FLUENTD_CONF
           value: ../../../etc/fluent/fluent.conf
-        image: fluent/fluentd-kubernetes-daemonset:v1.12.4-debian-elasticsearch7-1.0
+        image: fluent/fluentd-kubernetes-daemonset:v1.16.2-debian-elasticsearch7-1.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -43,35 +43,29 @@ spec:
         resources: {}
         securityContext: {}
         volumeMounts:
+        - mountPath: /etc/fluent
+          name: etcfluentd-main
+        - mountPath: /etc/fluent/config.d/
+          name: etcfluentd-config
         - mountPath: /var/log
           name: varlog
         - mountPath: /var/lib/docker/containers
           name: varlibdockercontainers
           readOnly: true
-        - mountPath: /etc/fluent
-          name: etcfluentd-main
-        - mountPath: /etc/fluent/config.d/
-          name: etcfluentd-config
-        - mountPath: /etc/fluent/fluentd-prometheus-conf.d
-          name: fluentd-custom-cm-fluentd-prometheus-conf
       securityContext: {}
-      serviceAccountName: RELEASE-NAME-fluentd
+      serviceAccountName: release-name-fluentd
       volumes:
+      - configMap:
+          defaultMode: 511
+          name: fluentd-main-release-name
+        name: etcfluentd-main
+      - configMap:
+          defaultMode: 511
+          name: fluentd-config-release-name
+        name: etcfluentd-config
       - hostPath:
           path: /var/log
         name: varlog
       - hostPath:
           path: /var/lib/docker/containers
         name: varlibdockercontainers
-      - configMap:
-          defaultMode: 511
-          name: fluentd-main
-        name: etcfluentd-main
-      - configMap:
-          defaultMode: 511
-          name: fluentd-config
-        name: etcfluentd-config
-      - configMap:
-          defaultMode: 511
-          name: fluentd-prometheus-conf
-        name: fluentd-custom-cm-fluentd-prometheus-conf
