@@ -3,16 +3,16 @@ kind: Role
 metadata:
   labels:
     app: loki
-    chart: loki-2.8.4
+    chart: loki-2.16.0
     heritage: Helm
-    release: RELEASE-NAME
-  name: RELEASE-NAME-loki
+    release: release-name
+  name: release-name-loki
   namespace: default
 rules:
 - apiGroups:
   - extensions
   resourceNames:
-  - RELEASE-NAME-loki
+  - release-name-loki
   resources:
   - podsecuritypolicies
   verbs:

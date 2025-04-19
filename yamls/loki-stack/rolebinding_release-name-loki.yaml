@@ -3,15 +3,15 @@ kind: RoleBinding
 metadata:
   labels:
     app: loki
-    chart: loki-2.8.4
+    chart: loki-2.16.0
     heritage: Helm
-    release: RELEASE-NAME
-  name: RELEASE-NAME-loki
+    release: release-name
+  name: release-name-loki
   namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: RELEASE-NAME-loki
+  name: release-name-loki
 subjects:
 - kind: ServiceAccount
-  name: RELEASE-NAME-loki
+  name: release-name-loki
