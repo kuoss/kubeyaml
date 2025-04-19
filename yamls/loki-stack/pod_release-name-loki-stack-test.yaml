@@ -5,20 +5,21 @@ metadata:
     helm.sh/hook: test-success
   labels:
     app: loki-stack
-    chart: loki-stack-2.5.1
+    chart: loki-stack-2.10.2
     heritage: Helm
-    release: RELEASE-NAME
-  name: RELEASE-NAME-loki-stack-test
+    release: release-name
+  name: release-name-loki-stack-test
 spec:
   containers:
   - args:
     - /var/lib/loki/test.sh
     env:
     - name: LOKI_SERVICE
-      value: RELEASE-NAME-loki
+      value: release-name-loki
     - name: LOKI_PORT
       value: "3100"
-    image: bats/bats:v1.1.0
+    image: bats/bats:1.8.2
+    imagePullPolicy: ""
     name: test
     volumeMounts:
     - mountPath: /var/lib/loki
@@ -26,5 +27,5 @@ spec:
   restartPolicy: Never
   volumes:
   - configMap:
-      name: RELEASE-NAME-loki-stack-test
+      name: release-name-loki-stack-test
     name: tests

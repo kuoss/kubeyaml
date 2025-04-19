@@ -4,17 +4,20 @@ metadata:
   labels:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: fluent-bit
-    app.kubernetes.io/version: 3.2.10
-    helm.sh/chart: fluent-bit-0.48.10
-  name: release-name-fluent-bit
+    app.kubernetes.io/name: promtail
+    app.kubernetes.io/version: 2.9.3
+    helm.sh/chart: promtail-6.15.5
+  name: release-name-promtail
 rules:
 - apiGroups:
   - ""
   resources:
-  - namespaces
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
   - pods
   verbs:
   - get
-  - list
   - watch
+  - list

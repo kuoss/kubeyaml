@@ -6,16 +6,17 @@ metadata:
     chart: loki-2.16.0
     heritage: Helm
     release: release-name
-    variant: headless
-  name: release-name-loki-headless
+  name: release-name-loki-memberlist
   namespace: default
 spec:
   clusterIP: None
   ports:
-  - name: http-metrics
-    port: 3100
+  - name: http
+    port: 7946
     protocol: TCP
-    targetPort: http-metrics
+    targetPort: memberlist-port
+  publishNotReadyAddresses: true
   selector:
     app: loki
     release: release-name
+  type: ClusterIP

@@ -6,8 +6,8 @@ metadata:
     helm.sh/hook-delete-policy: hook-succeeded
   labels:
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/version: 3.2.6
-    helm.sh/chart: fluent-bit-0.48.6
+    app.kubernetes.io/version: 3.2.10
+    helm.sh/chart: fluent-bit-0.48.10
   name: release-name-fluent-bit-test-connection
   namespace: default
 spec:

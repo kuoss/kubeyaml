@@ -5,8 +5,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: fluent-bit
-    app.kubernetes.io/version: 3.2.6
-    helm.sh/chart: fluent-bit-0.48.6
+    app.kubernetes.io/version: 3.2.10
+    helm.sh/chart: fluent-bit-0.48.10
   name: release-name-fluent-bit
   namespace: default
 spec:
@@ -17,7 +17,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: a0bc4866c9c0a095ae58f7d97757598e87e38038ba5b717e78d58ea5b6aed15e
+        checksum/config: 8b448c20f21f6ff02b46c41fcd951a0f005a8e5dd8f867b1e9d69ccff3a4fd66
       labels:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/name: fluent-bit
@@ -28,7 +28,7 @@ spec:
         - --config=/fluent-bit/etc/conf/fluent-bit.conf
         command:
         - /fluent-bit/bin/fluent-bit
-        image: cr.fluentbit.io/fluent/fluent-bit:3.2.6
+        image: cr.fluentbit.io/fluent/fluent-bit:3.2.10
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
