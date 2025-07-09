@@ -4,11 +4,10 @@ metadata:
   labels:
     app.kubernetes.io/component: server
     app.kubernetes.io/instance: release-name
-    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: prometheus
     app.kubernetes.io/part-of: prometheus
-    app.kubernetes.io/version: v2.54.0
-    helm.sh/chart: prometheus-25.26.0
+    app.kubernetes.io/version: v3.4.2
+    helm.sh/chart: prometheus-27.23.0
   name: release-name-prometheus-server
   namespace: default
 spec:
@@ -27,18 +26,17 @@ spec:
       labels:
         app.kubernetes.io/component: server
         app.kubernetes.io/instance: release-name
-        app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: prometheus
         app.kubernetes.io/part-of: prometheus
-        app.kubernetes.io/version: v2.54.0
-        helm.sh/chart: prometheus-25.26.0
+        app.kubernetes.io/version: v3.4.2
+        helm.sh/chart: prometheus-27.23.0
     spec:
       containers:
       - args:
         - --watched-dir=/etc/config
         - --listen-address=0.0.0.0:8080
         - --reload-url=http://127.0.0.1:9090/-/reload
-        image: quay.io/prometheus-operator/prometheus-config-reloader:v0.75.2
+        image: quay.io/prometheus-operator/prometheus-config-reloader:v0.83.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -68,7 +66,7 @@ spec:
         - --web.console.libraries=/etc/prometheus/console_libraries
         - --web.console.templates=/etc/prometheus/consoles
         - --web.enable-lifecycle
-        image: quay.io/prometheus/prometheus:v2.54.0
+        image: quay.io/prometheus/prometheus:v3.4.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3

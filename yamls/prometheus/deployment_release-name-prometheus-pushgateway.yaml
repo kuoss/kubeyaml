@@ -5,8 +5,8 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: prometheus-pushgateway
-    app.kubernetes.io/version: v1.9.0
-    helm.sh/chart: prometheus-pushgateway-2.14.0
+    app.kubernetes.io/version: v1.11.1
+    helm.sh/chart: prometheus-pushgateway-3.4.0
   name: release-name-prometheus-pushgateway
   namespace: default
 spec:
@@ -23,12 +23,12 @@ spec:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: prometheus-pushgateway
-        app.kubernetes.io/version: v1.9.0
-        helm.sh/chart: prometheus-pushgateway-2.14.0
+        app.kubernetes.io/version: v1.11.1
+        helm.sh/chart: prometheus-pushgateway-3.4.0
     spec:
       automountServiceAccountToken: true
       containers:
-      - image: quay.io/prometheus/pushgateway:v1.9.0
+      - image: quay.io/prometheus/pushgateway:v1.11.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
