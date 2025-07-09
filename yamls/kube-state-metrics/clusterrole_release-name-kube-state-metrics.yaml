@@ -3,13 +3,13 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/component: metrics
-    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: kube-state-metrics
     app.kubernetes.io/part-of: kube-state-metrics
-    app.kubernetes.io/version: 2.3.0
-    helm.sh/chart: kube-state-metrics-4.4.1
-  name: RELEASE-NAME-kube-state-metrics
+    app.kubernetes.io/version: 2.16.0
+    helm.sh/chart: kube-state-metrics-6.1.0
+  name: release-name-kube-state-metrics
 rules:
 - apiGroups:
   - certificates.k8s.io
@@ -33,7 +33,6 @@ rules:
   - list
   - watch
 - apiGroups:
-  - extensions
   - apps
   resources:
   - daemonsets
@@ -41,7 +40,6 @@ rules:
   - list
   - watch
 - apiGroups:
-  - extensions
   - apps
   resources:
   - deployments
@@ -63,7 +61,6 @@ rules:
   - list
   - watch
 - apiGroups:
-  - extensions
   - networking.k8s.io
   resources:
   - ingresses
@@ -74,6 +71,13 @@ rules:
   - batch
   resources:
   - jobs
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
   verbs:
   - list
   - watch
@@ -141,7 +145,6 @@ rules:
   - list
   - watch
 - apiGroups:
-  - extensions
   - apps
   resources:
   - replicasets
