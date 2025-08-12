@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: default/release-name-opentelemetry-operator-serving-cert
-    controller-gen.kubebuilder.io/version: v0.16.1
+    controller-gen.kubebuilder.io/version: v0.18.0
   creationTimestamp: null
   labels:
     app.kubernetes.io/name: opentelemetry-operator
@@ -2402,6 +2402,8 @@ spec:
                   runAsUser:
                     format: int64
                     type: integer
+                  seLinuxChangePolicy:
+                    type: string
                   seLinuxOptions:
                     properties:
                       level:
@@ -2487,6 +2489,7 @@ spec:
               priorityClassName:
                 type: string
               replicas:
+                default: 1
                 format: int32
                 type: integer
               resources:
@@ -2595,6 +2598,8 @@ spec:
                     type: object
                 type: object
               serviceAccount:
+                type: string
+              serviceName:
                 type: string
               shareProcessNamespace:
                 type: boolean
@@ -3170,6 +3175,8 @@ spec:
                       runAsUser:
                         format: int64
                         type: integer
+                      seLinuxChangePolicy:
+                        type: string
                       seLinuxOptions:
                         properties:
                           level:
@@ -6964,6 +6971,13 @@ spec:
                         type: boolean
                     type: object
                 type: object
+              persistentVolumeClaimRetentionPolicy:
+                properties:
+                  whenDeleted:
+                    type: string
+                  whenScaled:
+                    type: string
+                type: object
               podAnnotations:
                 additionalProperties:
                   type: string
@@ -7028,6 +7042,8 @@ spec:
                   runAsUser:
                     format: int64
                     type: integer
+                  seLinuxChangePolicy:
+                    type: string
                   seLinuxOptions:
                     properties:
                       level:
@@ -7134,6 +7150,7 @@ spec:
                     type: integer
                 type: object
               replicas:
+                default: 1
                 format: int32
                 type: integer
               resources:
@@ -7242,6 +7259,8 @@ spec:
                     type: object
                 type: object
               serviceAccount:
+                type: string
+              serviceName:
                 type: string
               shareProcessNamespace:
                 type: boolean
@@ -7693,6 +7712,10 @@ spec:
                     - consistent-hashing
                     - per-node
                     type: string
+                  collectorNotReadyGracePeriod:
+                    default: 30s
+                    format: duration
+                    type: string
                   enabled:
                     type: boolean
                   env:
@@ -7820,6 +7843,8 @@ spec:
                       runAsUser:
                         format: int64
                         type: integer
+                      seLinuxChangePolicy:
+                        type: string
                       seLinuxOptions:
                         properties:
                           level:
@@ -7875,9 +7900,69 @@ spec:
                     type: object
                   prometheusCR:
                     properties:
+                      allowNamespaces:
+                        items:
+                          type: string
+                        type: array
+                      denyNamespaces:
+                        items:
+                          type: string
+                        type: array
                       enabled:
                         type: boolean
                       podMonitorSelector:
+                        properties:
+                          matchExpressions:
+                            items:
+                              properties:
+                                key:
+                                  type: string
+                                operator:
+                                  type: string
+                                values:
+                                  items:
+                                    type: string
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                              required:
+                              - key
+                              - operator
+                              type: object
+                            type: array
+                            x-kubernetes-list-type: atomic
+                          matchLabels:
+                            additionalProperties:
+                              type: string
+                            type: object
+                        type: object
+                        x-kubernetes-map-type: atomic
+                      probeSelector:
+                        properties:
+                          matchExpressions:
+                            items:
+                              properties:
+                                key:
+                                  type: string
+                                operator:
+                                  type: string
+                                values:
+                                  items:
+                                    type: string
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                              required:
+                              - key
+                              - operator
+                              type: object
+                            type: array
+                            x-kubernetes-list-type: atomic
+                          matchLabels:
+                            additionalProperties:
+                              type: string
+                            type: object
+                        type: object
+                        x-kubernetes-map-type: atomic
+                      scrapeConfigSelector:
                         properties:
                           matchExpressions:
                             items:
@@ -9201,8 +9286,23 @@ spec:
                 x-kubernetes-list-type: atomic
             required:
             - config
-            - managementState
             type: object
+            x-kubernetes-validations:
+            - message: the OpenTelemetry Collector mode is set to sidecar, which does
+                not support the attribute 'tolerations'
+              rule: '!(self.mode == ''sidecar'' && size(self.tolerations) > 0) ||
+                !has(self.tolerations)'
+            - message: the OpenTelemetry Collector mode is set to sidecar, which does
+                not support the attribute 'priorityClassName'
+              rule: '!(self.mode == ''sidecar'' && self.priorityClassName != '''')
+                || !has(self.priorityClassName)'
+            - message: the OpenTelemetry Collector mode is set to sidecar, which does
+                not support the attribute 'affinity'
+              rule: '!(self.mode == ''sidecar'' && self.affinity != null) || !has(self.affinity)'
+            - message: the OpenTelemetry Collector mode is set to sidecar, which does
+                not support the attribute 'additionalContainers'
+              rule: '!(self.mode == ''sidecar'' && size(self.additionalContainers)
+                > 0) || !has(self.additionalContainers)'
           status:
             properties:
               image:

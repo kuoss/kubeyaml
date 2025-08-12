@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: opentelemetry-ebpf
     app.kubernetes.io/version: v0.10.2
-    helm.sh/chart: opentelemetry-ebpf-0.1.4
+    helm.sh/chart: opentelemetry-ebpf-0.1.6
   name: release-name-opentelemetry-ebpf-kernel-collector
 spec:
   selector:
@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       annotations:
-        charts.flowmill.com/version: 0.1.4
+        charts.flowmill.com/version: 0.1.6
       labels:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/name: release-name-opentelemetry-ebpf-kernel-collector

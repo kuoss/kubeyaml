@@ -3,8 +3,8 @@ kind: OpenTelemetryCollector
 metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/version: 0.107.0
-    helm.sh/chart: opentelemetry-kube-stack-0.3.3
+    app.kubernetes.io/version: 0.129.1
+    helm.sh/chart: opentelemetry-kube-stack-0.8.0
     release: release-name
   name: release-name-daemon
   namespace: default
@@ -12,6 +12,15 @@ spec:
   config:
     exporters:
       debug: {}
+    extensions:
+      k8s_leader_elector/k8s_cluster:
+        auth_type: serviceAccount
+        lease_name: k8s.cluster.receiver.opentelemetry.io
+        lease_namespace: default
+      k8s_leader_elector/k8s_objects:
+        auth_type: serviceAccount
+        lease_name: k8s.objects.receiver.opentelemetry.io
+        lease_namespace: default
     processors:
       batch:
         send_batch_max_size: 1500
@@ -56,7 +65,7 @@ spec:
           - container.image.name
           - k8s.cluster.uid
         filter:
-          node_from_env_var: K8S_NODE_NAME
+          node_from_env_var: OTEL_K8S_NODE_NAME
         passthrough: false
         pod_association:
         - sources:
@@ -153,6 +162,27 @@ spec:
               system.memory.utilization:
                 enabled: true
           network: {}
+      k8s_cluster:
+        allocatable_types_to_report:
+        - cpu
+        - memory
+        - storage
+        auth_type: serviceAccount
+        collection_interval: 10s
+        k8s_leader_elector: k8s_leader_elector/k8s_cluster
+        node_conditions_to_report:
+        - Ready
+        - MemoryPressure
+        - DiskPressure
+        - NetworkUnavailable
+      k8sobjects:
+        k8s_leader_elector: k8s_leader_elector/k8s_objects
+        objects:
+        - exclude_watch_type:
+          - DELETED
+          group: events.k8s.io
+          mode: watch
+          name: events
       kubeletstats:
         auth_type: serviceAccount
         collection_interval: 15s
@@ -360,6 +390,9 @@ spec:
               ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
               insecure_skip_verify: true
     service:
+      extensions:
+      - k8s_leader_elector/k8s_objects
+      - k8s_leader_elector/k8s_cluster
       pipelines:
         logs:
           exporters:
@@ -371,6 +404,7 @@ spec:
           receivers:
           - otlp
           - filelog
+          - k8sobjects
         metrics:
           exporters:
           - debug
@@ -383,6 +417,7 @@ spec:
           - otlp
           - hostmetrics
           - kubeletstats
+          - k8s_cluster
         traces:
           exporters:
           - debug
@@ -416,19 +451,17 @@ spec:
       fieldRef:
         apiVersion: v1
         fieldPath: status.podIP
-  hostNetwork: false
   imagePullPolicy: IfNotPresent
   managementState: managed
   mode: daemonset
   resources:
     limits:
-      cpu: 100m
-      memory: 250Mi
+      cpu: 200m
+      memory: 500Mi
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 250Mi
   securityContext: {}
-  shareProcessNamespace: false
   terminationGracePeriodSeconds: 30
   upgradeStrategy: automatic
   volumeMounts:

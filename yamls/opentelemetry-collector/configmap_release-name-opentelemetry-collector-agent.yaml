@@ -70,14 +70,20 @@ data:
           - zipkin
       telemetry:
         metrics:
-          address: ${env:MY_POD_IP}:8888
+          readers:
+          - pull:
+              exporter:
+                prometheus:
+                  host: ${env:MY_POD_IP}
+                  port: 8888
 kind: ConfigMap
 metadata:
   labels:
+    app.kubernetes.io/component: agent-collector
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: opentelemetry-collector
-    app.kubernetes.io/version: 0.111.0
-    helm.sh/chart: opentelemetry-collector-0.108.0
+    app.kubernetes.io/version: 0.131.0
+    helm.sh/chart: opentelemetry-collector-0.130.1
   name: release-name-opentelemetry-collector-agent
   namespace: default
