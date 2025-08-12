@@ -14,7 +14,7 @@ spec:
         - -c
         - |
           kubectl delete instrumentations,opampbridges,opentelemetrycollectors \
-            -l helm.sh/chart=opentelemetry-kube-stack-0.3.3
+            -l helm.sh/chart=opentelemetry-kube-stack-0.8.0
         image: bitnami/kubectl:latest
         name: delete-resources
       restartPolicy: Never

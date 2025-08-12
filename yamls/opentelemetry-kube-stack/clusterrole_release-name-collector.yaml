@@ -16,6 +16,8 @@ rules:
   - pods
   - events
   - secrets
+  - persistentvolumeclaims
+  - persistentvolumes
   verbs:
   - get
   - list
@@ -25,6 +27,8 @@ rules:
   resources:
   - servicemonitors
   - podmonitors
+  - scrapeconfigs
+  - probes
   verbs:
   - get
   - list
@@ -69,6 +73,18 @@ rules:
   - /metrics/cadvisor
   verbs:
   - get
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
 - apiGroups:
   - ""
   resources:

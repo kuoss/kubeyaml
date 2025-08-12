@@ -272,8 +272,6 @@
     mode: daemonset
     image:
       repository: otel/opentelemetry-collector-k8s
-    command:
-      name: otelcol-k8s
 - name: opentelemetry-demo
   repo: https://open-telemetry.github.io/opentelemetry-helm-charts
 - name: opentelemetry-ebpf

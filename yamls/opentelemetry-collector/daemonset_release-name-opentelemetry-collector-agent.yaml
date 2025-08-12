@@ -2,14 +2,16 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
+    app.kubernetes.io/component: agent-collector
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: opentelemetry-collector
-    app.kubernetes.io/version: 0.111.0
-    helm.sh/chart: opentelemetry-collector-0.108.0
+    app.kubernetes.io/version: 0.131.0
+    helm.sh/chart: opentelemetry-collector-0.130.1
   name: release-name-opentelemetry-collector-agent
   namespace: default
 spec:
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app.kubernetes.io/instance: release-name
@@ -18,24 +20,23 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: f31652e990bf5f37615d618cb4002ecc4bb656555ed8289799c6760c858100e1
+        checksum/config: 79dd4c67e4aa2f5ee46142e447ddfdfe550350f05d88636dbc92a2cbc3820cbf
       labels:
         app.kubernetes.io/instance: release-name
         app.kubernetes.io/name: opentelemetry-collector
         component: agent-collector
     spec:
+      automountServiceAccountToken: true
       containers:
       - args:
         - --config=/conf/relay.yaml
-        command:
-        - /otelcol-k8s
         env:
         - name: MY_POD_IP
           valueFrom:
             fieldRef:
               apiVersion: v1
               fieldPath: status.podIP
-        image: otel/opentelemetry-collector-k8s:0.111.0
+        image: otel/opentelemetry-collector-k8s:0.131.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:

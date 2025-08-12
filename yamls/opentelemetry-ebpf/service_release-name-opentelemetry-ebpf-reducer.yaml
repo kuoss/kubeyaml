@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: opentelemetry-ebpf
     app.kubernetes.io/version: v0.10.2
-    helm.sh/chart: opentelemetry-ebpf-0.1.4
+    helm.sh/chart: opentelemetry-ebpf-0.1.6
   name: release-name-opentelemetry-ebpf-reducer
 spec:
   ports:
