@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mariadb
+    app.kubernetes.io/version: 11.4.2
+    helm.sh/chart: mariadb-19.0.2
+  name: release-name-mariadb
+  namespace: default
+spec:
+  egress:
+  - {}
+  ingress:
+  - ports:
+    - port: 3306
+    - port: 3306
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: mariadb
+      app.kubernetes.io/version: 11.4.2
+      helm.sh/chart: mariadb-19.0.2
+  policyTypes:
+  - Ingress
+  - Egress

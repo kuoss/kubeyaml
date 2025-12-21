@@ -3,11 +3,12 @@ kind: StatefulSet
 metadata:
   labels:
     app.kubernetes.io/component: primary
-    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: mariadb
-    helm.sh/chart: mariadb-10.2.0
-  name: RELEASE-NAME-mariadb
+    app.kubernetes.io/version: 11.4.2
+    helm.sh/chart: mariadb-19.0.2
+  name: release-name-mariadb
   namespace: default
 spec:
   replicas: 1
@@ -15,19 +16,20 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: primary
-      app.kubernetes.io/instance: RELEASE-NAME
+      app.kubernetes.io/instance: release-name
       app.kubernetes.io/name: mariadb
-  serviceName: RELEASE-NAME-mariadb
+  serviceName: release-name-mariadb
   template:
     metadata:
       annotations:
-        checksum/configuration: 595cfbf0f952b92d7051b8196302fde4ef4bef2e8d199cebde4dbd004aef75c0
+        checksum/configuration: de94dfc0ca597d4091fb513d4a60626da16447285c94590b9e5d9c67fd333d6d
       labels:
         app.kubernetes.io/component: primary
-        app.kubernetes.io/instance: RELEASE-NAME
+        app.kubernetes.io/instance: release-name
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: mariadb
-        helm.sh/chart: mariadb-10.2.0
+        app.kubernetes.io/version: 11.4.2
+        helm.sh/chart: mariadb-19.0.2
     spec:
       affinity:
         nodeAffinity: null
@@ -38,12 +40,11 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/component: primary
-                  app.kubernetes.io/instance: RELEASE-NAME
+                  app.kubernetes.io/instance: release-name
                   app.kubernetes.io/name: mariadb
-              namespaces:
-              - default
               topologyKey: kubernetes.io/hostname
             weight: 1
+      automountServiceAccountToken: false
       containers:
       - env:
         - name: BITNAMI_DEBUG
@@ -52,17 +53,17 @@ spec:
           valueFrom:
             secretKeyRef:
               key: mariadb-root-password
-              name: RELEASE-NAME-mariadb
+              name: release-name-mariadb
         - name: MARIADB_USER
           value: bn_mediawiki
         - name: MARIADB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: mariadb-password
-              name: RELEASE-NAME-mariadb
+              name: release-name-mariadb
         - name: MARIADB_DATABASE
           value: bitnami_mediawiki
-        image: docker.io/bitnami/mariadb:10.5.13-debian-10-r32
+        image: docker.io/bitnami/mariadb:11.4.2-debian-12-r1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -94,30 +95,104 @@ spec:
               if [[ -f "${MARIADB_ROOT_PASSWORD_FILE:-}" ]]; then
                   password_aux=$(cat "$MARIADB_ROOT_PASSWORD_FILE")
               fi
-              mysqladmin status -uroot -p"${password_aux}"
+              mysqladmin ping -uroot -p"${password_aux}"
           failureThreshold: 3
           initialDelaySeconds: 30
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
         resources:
-          limits: {}
-          requests: {}
+          limits:
+            cpu: 375m
+            ephemeral-storage: 2Gi
+            memory: 384Mi
+          requests:
+            cpu: 250m
+            ephemeral-storage: 50Mi
+            memory: 256Mi
         securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
           runAsNonRoot: true
           runAsUser: 1001
+          seLinuxOptions: {}
+          seccompProfile:
+            type: RuntimeDefault
         volumeMounts:
         - mountPath: /bitnami/mariadb
           name: data
         - mountPath: /opt/bitnami/mariadb/conf/my.cnf
           name: config
           subPath: my.cnf
+        - mountPath: /tmp
+          name: empty-dir
+          subPath: tmp-dir
+        - mountPath: /opt/bitnami/mariadb/conf
+          name: empty-dir
+          subPath: app-conf-dir
+        - mountPath: /opt/bitnami/mariadb/tmp
+          name: empty-dir
+          subPath: app-tmp-dir
+        - mountPath: /opt/bitnami/mariadb/logs
+          name: empty-dir
+          subPath: app-logs-dir
+      initContainers:
+      - args:
+        - -ec
+        - |
+          #!/bin/bash
+
+          . /opt/bitnami/scripts/libfs.sh
+          # We copy the logs folder because it has symlinks to stdout and stderr
+          if ! is_dir_empty /opt/bitnami/mariadb/logs; then
+            cp -r /opt/bitnami/mariadb/logs /emptydir/app-logs-dir
+          fi
+        command:
+        - /bin/bash
+        image: docker.io/bitnami/mariadb:11.4.2-debian-12-r1
+        imagePullPolicy: IfNotPresent
+        name: preserve-logs-symlinks
+        resources:
+          limits:
+            cpu: 375m
+            ephemeral-storage: 2Gi
+            memory: 384Mi
+          requests:
+            cpu: 250m
+            ephemeral-storage: 50Mi
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+          seLinuxOptions: {}
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /emptydir
+          name: empty-dir
       securityContext:
         fsGroup: 1001
-      serviceAccountName: RELEASE-NAME-mariadb
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      serviceAccountName: release-name-mariadb
       volumes:
+      - emptyDir: {}
+        name: empty-dir
       - configMap:
-          name: RELEASE-NAME-mariadb
+          name: release-name-mariadb
         name: config
   updateStrategy:
     type: RollingUpdate
@@ -125,7 +200,7 @@ spec:
   - metadata:
       labels:
         app.kubernetes.io/component: primary
-        app.kubernetes.io/instance: RELEASE-NAME
+        app.kubernetes.io/instance: release-name
         app.kubernetes.io/name: mariadb
       name: data
     spec:

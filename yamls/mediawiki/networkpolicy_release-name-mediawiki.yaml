@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mediawiki
+    app.kubernetes.io/version: 1.42.1
+    helm.sh/chart: mediawiki-21.0.5
+  name: release-name-mediawiki
+  namespace: default
+spec:
+  egress:
+  - {}
+  ingress:
+  - ports:
+    - port: 8080
+    - port: 8443
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: mediawiki
+  policyTypes:
+  - Ingress
+  - Egress

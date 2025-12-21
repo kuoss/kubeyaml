@@ -5,16 +5,19 @@ data:
     skip-name-resolve
     explicit_defaults_for_timestamp
     basedir=/opt/bitnami/mariadb
+    datadir=/bitnami/mariadb/data
     plugin_dir=/opt/bitnami/mariadb/plugin
     port=3306
     socket=/opt/bitnami/mariadb/tmp/mysql.sock
     tmpdir=/opt/bitnami/mariadb/tmp
     max_allowed_packet=16M
-    bind-address=::
+    bind-address=*
     pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
     log-error=/opt/bitnami/mariadb/logs/mysqld.log
     character-set-server=UTF8
     collation-server=utf8_general_ci
+    slow_query_log=0
+    long_query_time=10.0
 
     [client]
     port=3306
@@ -30,9 +33,10 @@ kind: ConfigMap
 metadata:
   labels:
     app.kubernetes.io/component: primary
-    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: mariadb
-    helm.sh/chart: mariadb-10.2.0
-  name: RELEASE-NAME-mariadb
+    app.kubernetes.io/version: 11.4.2
+    helm.sh/chart: mariadb-19.0.2
+  name: release-name-mariadb
   namespace: default
